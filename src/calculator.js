@@ -11,8 +11,11 @@ export class Calculator
 {
     constructor()
     {
-        this.jobModifier = jobModifiers[0];
-        this.levelModifier = levelModifiers[0];
+        this.setJob('PLD');
+        this.setLevel(80);
+        this.setMainStat('STR', 380);
+        this.setStats(100, 380, 380, 380, 380, 380);
+        this.setTraitBoost(1.);
     }
 
     setJob(jobName)
@@ -50,7 +53,7 @@ export class Calculator
     setMainStat(attribute, value)
     {
         this.attribute = attribute;
-        this.mainValue = value;
+        this._mainValue = value;
     }
 
     setStats(weaponDamage, critical, directHit, determination, speed, tenacity = 380)
@@ -60,16 +63,36 @@ export class Calculator
         this._dh = directHit;
         this._det = determination;
         this._sks = speed;
-        this._tnc = tenacity
+        this._tnc = tenacity;
+    }
+
+    setTraitBoost(boost)
+    {
+        this._traitBoost = boost
     }
 
     attackDamage(potency)
     {
-        let ap = Functions.attackPower(this.mainValue);
+        let ap = Functions.attackPower(this._mainValue);
         let wd = Functions.weaponDamage(this, this.attribute, this._wd);
         let pot = Functions.potency(potency);
         let det = Functions.determination(this.levelModifier, this._det);
-        let d1 = Math.floor(pot * wd * ap * det);
-        return d1;
+        let tnc = Functions.tenacity(this.levelModifier, this._tnc);
+        let d1 = Math.floor(pot * wd * ap * det * tnc * this._traitBoost);
+
+        let pdh = Functions.directHitProbability(this.levelModifier, this._dh);
+        let pch = Functions.criticalHitProbability(this.levelModifier, this._crt);
+        let chr = Functions.criticalHitRate(this.levelModifier, this._crt);
+
+        let avg = Math.floor(d1 * pch * (chr - 1) + d1);
+        avg = Math.floor(avg + avg * pdh * 0.25);
+
+        let max = Math.floor(Math.floor(d1 * chr) * 1.25);
+
+        return {
+            min: Math.floor(d1 * 0.95),
+            avg: avg,
+            max: Math.floor(1.05 * max)
+        };
     }
 }

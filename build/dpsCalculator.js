@@ -1133,6 +1133,26 @@
         return Math.floor(130 * (value - levelModifier.MAIN) / levelModifier.DIV + 1000) / 1000
     }
 
+    function tenacity(levelModifier, tnc)
+    {
+        return Math.floor(100 * (tnc - levelModifier.SUB) / levelModifier.DIV + 1000) / 1000
+    }
+
+    function directHitProbability(levelModifier, dh)
+    {
+        return Math.floor(550 * (dh - levelModifier.SUB) / levelModifier.DIV) / 1000
+    }
+
+    function criticalHitProbability(levelModifier, crit)
+    {
+        return Math.floor(200 * (crit - levelModifier.SUB) / levelModifier.DIV + 50) / 1000
+    }
+
+    function criticalHitRate(levelModifier, crit)
+    {
+        return Math.floor(200 * (crit - levelModifier.SUB) / levelModifier.DIV + 1400) / 1000
+    }
+
     /**
      * @file calculator.js
      * @author Max Godefroy <max@godefroy.net>
@@ -1142,8 +1162,11 @@
     {
         constructor()
         {
-            this.jobModifier = jobModifiers[0];
-            this.levelModifier = levelModifiers[0];
+            this.setJob('PLD');
+            this.setLevel(80);
+            this.setMainStat('STR', 380);
+            this.setStats(100, 380, 380, 380, 380, 380);
+            this.setTraitBoost(1.);
         }
 
         setJob(jobName)
@@ -1181,27 +1204,47 @@
         setMainStat(attribute, value)
         {
             this.attribute = attribute;
-            this.mainValue = value;
+            this._mainValue = value;
         }
 
-        setStats(weaponDamage$$1, critical, directHit, determination$$1, speed, tenacity = 380)
+        setStats(weaponDamage$$1, critical, directHit, determination$$1, speed$$1, tenacity$$1 = 380)
         {
             this._wd = weaponDamage$$1;
             this._crt = critical;
             this._dh = directHit;
             this._det = determination$$1;
-            this._sks = speed;
-            this._tnc = tenacity;
+            this._sks = speed$$1;
+            this._tnc = tenacity$$1;
+        }
+
+        setTraitBoost(boost)
+        {
+            this._traitBoost = boost;
         }
 
         attackDamage(potency$$1)
         {
-            let ap = attackPower(this.mainValue);
+            let ap = attackPower(this._mainValue);
             let wd = weaponDamage(this, this.attribute, this._wd);
             let pot = potency(potency$$1);
             let det = determination(this.levelModifier, this._det);
-            let d1 = Math.floor(pot * wd * ap * det);
-            return d1;
+            let tnc = tenacity(this.levelModifier, this._tnc);
+            let d1 = Math.floor(pot * wd * ap * det * tnc * this._traitBoost);
+
+            let pdh = directHitProbability(this.levelModifier, this._dh);
+            let pch = criticalHitProbability(this.levelModifier, this._crt);
+            let chr = criticalHitRate(this.levelModifier, this._crt);
+
+            let avg = Math.floor(d1 * pch * (chr - 1) + d1);
+            avg = Math.floor(avg + avg * pdh * 0.25);
+
+            let max = Math.floor(Math.floor(d1 * chr) * 1.25);
+
+            return {
+                min: Math.floor(d1 * 0.95),
+                avg: avg,
+                max: Math.floor(1.05 * max)
+            };
         }
     }
 
