@@ -1161,6 +1161,30 @@
     }
 
     /**
+     * @file classStatus.js
+     * @author Max Godefroy <max@godefroy.net>
+     */
+
+    class ClassStatus
+    {
+        constructor() {
+            this._currentTime = 0;
+        }
+
+        incrementTimeByTime(time) {
+            this._currentTime += time;
+        }
+
+        getBuffs() { return [] }
+
+        getTypeYSpeedModifier() { return 0 }
+
+        getTypeZSpeedModifier() { return 0 }
+
+        getHasteModifier() { return 0 }
+    }
+
+    /**
      * @file calculator.js
      * @author Max Godefroy <max@godefroy.net>
      */
@@ -1174,6 +1198,7 @@
             this.setMainStat('STR', 380);
             this.setStats(100, 380, 380, 380, 380, 380);
             this.setTraitBoost(1.);
+            this._status = new ClassStatus();
         }
 
         setJob(jobName)
@@ -1247,11 +1272,11 @@
 
             let max = Math.floor(Math.floor(d1 * chr) * 1.25);
 
-            return {
+            return Calculator.applyBuffs({
                 min: Math.floor(d1 * 0.95),
                 avg: avg,
                 max: Math.floor(1.05 * max)
-            };
+            }, this._status.getBuffs());
         }
 
         getGCD(delay = 2500)
@@ -1260,8 +1285,8 @@
                 (1000 - Math.floor(130 * (this._sks - this.levelModifier.SUB) / this.levelModifier.DIV)) * delay / 1000
             );
 
-            let a = Math.floor((100 - 0) * (100 - 0) / 100);
-            let b = (100 - 0) / 100;
+            let a = Math.floor((100 - this._status.getTypeYSpeedModifier()) * (100 - this._status.getHasteModifier()) / 100);
+            let b = (100 - this._status.getTypeZSpeedModifier()) / 100;
 
             let gcdc = Math.floor(
                 Math.floor(
@@ -1290,11 +1315,21 @@
 
             let max = Math.floor(Math.floor(d1 * chr) * 1.25);
 
-            return {
+            return Calculator.applyBuffs({
                 min: Math.floor(d1 * 0.95),
                 avg: avg,
                 max: Math.floor(1.05 * max)
-            };
+            }, this._status.getBuffs());
+        }
+
+        static applyBuffs(damage, buffs)
+        {
+            for (let buff of buffs) {
+                damage.min = Math.floor(damage.min * buff);
+                damage.avg = Math.floor(damage.avg * buff);
+                damage.max = Math.floor(damage.max * buff);
+            }
+            return damage
         }
     }
 

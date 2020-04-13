@@ -6,6 +6,7 @@
 import jobModifiers from './data/jobModifiers'
 import levelModifiers from './data/levelModifiers'
 import * as Functions from './functions'
+import {ClassStatus} from "./classStatus";
 
 export class Calculator
 {
@@ -16,6 +17,7 @@ export class Calculator
         this.setMainStat('STR', 380);
         this.setStats(100, 380, 380, 380, 380, 380);
         this.setTraitBoost(1.);
+        this._status = new ClassStatus()
     }
 
     setJob(jobName)
@@ -71,7 +73,7 @@ export class Calculator
         this._traitBoost = boost
     }
 
-    attackDamage(potency)
+    getAttackDamage(potency)
     {
         let ap = Functions.attackPower(this._mainValue);
         let wd = Functions.weaponDamage(this, this.attribute, this._wd);
@@ -89,11 +91,11 @@ export class Calculator
 
         let max = Math.floor(Math.floor(d1 * chr) * 1.25);
 
-        return {
+        return Calculator.applyBuffs({
             min: Math.floor(d1 * 0.95),
             avg: avg,
             max: Math.floor(1.05 * max)
-        };
+        }, this._status.getBuffs());
     }
 
     getGCD(delay = 2500)
@@ -102,8 +104,8 @@ export class Calculator
             (1000 - Math.floor(130 * (this._sks - this.levelModifier.SUB) / this.levelModifier.DIV)) * delay / 1000
         );
 
-        let a = Math.floor((100 - 0) * (100 - 0) / 100);
-        let b = (100 - 0) / 100;
+        let a = Math.floor((100 - this._status.getTypeYSpeedModifier()) * (100 - this._status.getHasteModifier()) / 100);
+        let b = (100 - this._status.getTypeZSpeedModifier()) / 100;
 
         let gcdc = Math.floor(
             Math.floor(
@@ -118,7 +120,7 @@ export class Calculator
     {
         let ap = Functions.attackPower(this._mainValue);
         let aa = Functions.autoAttack(this.levelModifier, this.jobModifier, this.attribute, this._wd, delay);
-        let pot = Functions.potency(110);
+        let pot = Functions.potency(this._status.getAutoAttackPotency());
         let det = Functions.determination(this.levelModifier, this._det);
         let tnc = Functions.tenacity(this.levelModifier, this._tnc);
         let d1 = Math.floor(pot * aa * ap * det * tnc * this._traitBoost);
@@ -132,10 +134,20 @@ export class Calculator
 
         let max = Math.floor(Math.floor(d1 * chr) * 1.25);
 
-        return {
+        return Calculator.applyBuffs({
             min: Math.floor(d1 * 0.95),
             avg: avg,
             max: Math.floor(1.05 * max)
-        };
+        }, this._status.getBuffs());
+    }
+
+    static applyBuffs(damage, buffs)
+    {
+        for (let buff of buffs) {
+            damage.min = Math.floor(damage.min * buff);
+            damage.avg = Math.floor(damage.avg * buff);
+            damage.max = Math.floor(damage.max * buff);
+        }
+        return damage
     }
 }
