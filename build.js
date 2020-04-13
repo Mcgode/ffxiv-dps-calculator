@@ -3,6 +3,7 @@ var rollup = require('rollup');
 var commonjs = require('rollup-plugin-commonjs');    // require
 var resolve = require('rollup-plugin-node-resolve'); // require from node_modules
 var terser = require('rollup-plugin-terser').terser; // minify
+var json = require('@rollup/plugin-json');
 var prettier = require('rollup-plugin-prettier');
 
 const MODULE_NAME = 'DPSCalculator';
@@ -30,13 +31,13 @@ async function build(inputOptions, outputOptions) {
 
 build({
     input: 'src/calculator.js',
-    plugins:  [ commonjs(), resolve() ],
+    plugins:  [ commonjs(), resolve(), json() ],
     external: [],
 }, {
     format: 'umd',
     name: MODULE_NAME,
     file: `./run/${MODULE_FILENAME}.js`,
-    copyFile: `./dist/${MODULE_FILENAME}.js`,
+    copyFile: `./build/${MODULE_FILENAME}.js`,
     globals: {}
 });
 
@@ -53,6 +54,7 @@ build({
     plugins:  [
         commonjs(),
         resolve(),
+        json(),
         terser(),
         prettier({
             parser: 'babel',
