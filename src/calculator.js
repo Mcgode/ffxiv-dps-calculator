@@ -95,4 +95,22 @@ export class Calculator
             max: Math.floor(1.05 * max)
         };
     }
+
+    getGCD(delay = 2500)
+    {
+        let gcdm = Math.floor(
+            (1000 - Math.floor(130 * (this._sks - this.levelModifier.SUB) / this.levelModifier.DIV)) * delay / 1000
+        );
+
+        let a = Math.floor((100 - 0) * (100 - 0) / 100);
+        let b = (100 - 0) / 100;
+
+        let gcdc = Math.floor(
+            Math.floor(
+                Math.floor(Math.ceil(a * b) * gcdm / 100) * 100 / 1000
+            ) * 100 / 100
+        );
+
+        return gcdc / 100
+    }
 }

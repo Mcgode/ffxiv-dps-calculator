@@ -29,7 +29,6 @@ export function tenacity(levelModifier, tnc)
     return Math.floor(100 * (tnc - levelModifier.SUB) / levelModifier.DIV + 1000) / 1000
 }
 
-
 export function speed(levelModifier, ss)
 {
     return Math.floor(130 * (ss - levelModifier.SUB) / levelModifier.DIV + 1000) / 1000
