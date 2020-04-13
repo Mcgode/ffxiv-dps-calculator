@@ -17,7 +17,8 @@
         calculator.setStats(124, 3185, 2285, 2186, 724);
         console.log(calculator.attackDamage(290));
         console.log(calculator.getGCD());
-        console.log("Average DPS: " + Math.round(calculator.attackDamage(290).avg / calculator.getGCD() * 100) / 100)
+        console.log("Average DPS: " + Math.round(calculator.attackDamage(290).avg / calculator.getGCD() * 100) / 100);
+        console.log("Auto-attack dps: " + Math.round(calculator.getAutoAttackDamage(2.8).avg / 2.8 * 100) / 100)
     </script>
 </body>
 

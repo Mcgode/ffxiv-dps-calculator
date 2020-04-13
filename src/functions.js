@@ -48,3 +48,10 @@ export function criticalHitRate(levelModifier, crit)
 {
     return Math.floor(200 * (crit - levelModifier.SUB) / levelModifier.DIV + 1400) / 1000
 }
+
+export function autoAttack(levelModifier, jobModifier, attribute, wd, delay)
+{
+    return Math.floor(
+        Math.floor(levelModifier.MAIN * jobModifier[attribute] / 1000 + wd) * delay / 3
+    )
+}

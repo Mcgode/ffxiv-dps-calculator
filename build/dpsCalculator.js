@@ -1153,6 +1153,13 @@
         return Math.floor(200 * (crit - levelModifier.SUB) / levelModifier.DIV + 1400) / 1000
     }
 
+    function autoAttack(levelModifier, jobModifier, attribute, wd, delay)
+    {
+        return Math.floor(
+            Math.floor(levelModifier.MAIN * jobModifier[attribute] / 1000 + wd) * delay / 3
+        )
+    }
+
     /**
      * @file calculator.js
      * @author Max Godefroy <max@godefroy.net>
@@ -1252,12 +1259,9 @@
             let gcdm = Math.floor(
                 (1000 - Math.floor(130 * (this._sks - this.levelModifier.SUB) / this.levelModifier.DIV)) * delay / 1000
             );
-            console.log(gcdm);
 
             let a = Math.floor((100 - 0) * (100 - 0) / 100);
             let b = (100 - 0) / 100;
-
-            console.log(a * b);
 
             let gcdc = Math.floor(
                 Math.floor(
@@ -1266,6 +1270,31 @@
             );
 
             return gcdc / 100
+        }
+
+        getAutoAttackDamage(delay)
+        {
+            let ap = attackPower(this._mainValue);
+            let aa = autoAttack(this.levelModifier, this.jobModifier, this.attribute, this._wd, delay);
+            let pot = potency(110);
+            let det = determination(this.levelModifier, this._det);
+            let tnc = tenacity(this.levelModifier, this._tnc);
+            let d1 = Math.floor(pot * aa * ap * det * tnc * this._traitBoost);
+
+            let pdh = directHitProbability(this.levelModifier, this._dh);
+            let pch = criticalHitProbability(this.levelModifier, this._crt);
+            let chr = criticalHitRate(this.levelModifier, this._crt);
+
+            let avg = Math.floor(d1 * pch * (chr - 1) + d1);
+            avg = Math.floor(avg + avg * pdh * 0.25);
+
+            let max = Math.floor(Math.floor(d1 * chr) * 1.25);
+
+            return {
+                min: Math.floor(d1 * 0.95),
+                avg: avg,
+                max: Math.floor(1.05 * max)
+            };
         }
     }
 

@@ -113,4 +113,29 @@ export class Calculator
 
         return gcdc / 100
     }
+
+    getAutoAttackDamage(delay)
+    {
+        let ap = Functions.attackPower(this._mainValue);
+        let aa = Functions.autoAttack(this.levelModifier, this.jobModifier, this.attribute, this._wd, delay);
+        let pot = Functions.potency(110);
+        let det = Functions.determination(this.levelModifier, this._det);
+        let tnc = Functions.tenacity(this.levelModifier, this._tnc);
+        let d1 = Math.floor(pot * aa * ap * det * tnc * this._traitBoost);
+
+        let pdh = Functions.directHitProbability(this.levelModifier, this._dh);
+        let pch = Functions.criticalHitProbability(this.levelModifier, this._crt);
+        let chr = Functions.criticalHitRate(this.levelModifier, this._crt);
+
+        let avg = Math.floor(d1 * pch * (chr - 1) + d1);
+        avg = Math.floor(avg + avg * pdh * 0.25);
+
+        let max = Math.floor(Math.floor(d1 * chr) * 1.25);
+
+        return {
+            min: Math.floor(d1 * 0.95),
+            avg: avg,
+            max: Math.floor(1.05 * max)
+        };
+    }
 }
