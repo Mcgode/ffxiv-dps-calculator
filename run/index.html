@@ -11,9 +11,11 @@
 
     <script>
         let calculator = new DPSCalculator.Calculator(null, null);
-        console.log(calculator.getDamage(100));
-        calculator.setJob('PLD');
-        calculator.setLevel(80)
+        calculator.setJob('DRG');
+        calculator.setLevel(80);
+        calculator.setMainStat('STR', 4876);
+        calculator.setStats(124, 3185, 2285, 2186, 724);
+        console.log(calculator.attackDamage(290));
     </script>
 </body>
 

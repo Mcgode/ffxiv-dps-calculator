@@ -1118,6 +1118,21 @@
         return value / 100
     }
 
+    function weaponDamage(calculator, attribute, weaponDamageValue)
+    {
+        return Math.floor(calculator.levelModifier.MAIN * calculator.jobModifier[attribute] / 1000 + weaponDamageValue)
+    }
+
+    function attackPower(value)
+    {
+        return Math.floor(125 * (value - 292) / 292 + 100) / 100
+    }
+
+    function determination(levelModifier, value)
+    {
+        return Math.floor(130 * (value - levelModifier.MAIN) / levelModifier.DIV + 1000) / 1000
+    }
+
     /**
      * @file calculator.js
      * @author Max Godefroy <max@godefroy.net>
@@ -1134,7 +1149,6 @@
         setJob(jobName)
         {
             for (let i = 0; i < jobModifiers.length; i++) {
-                console.log(jobModifiers[i]);
                 if (jobModifiers[i].Job.toLowerCase() === jobName.toLowerCase()) {
                     this.setJobAtIndex(i);
                     return
@@ -1151,7 +1165,6 @@
         setLevel(level)
         {
             for (let i = 0; i < levelModifiers.length; i++) {
-                console.log(levelModifiers[i]);
                 if (levelModifiers[i]["Lv."] === level) {
                     this.setLevelAtIndex(i);
                     return
@@ -1165,10 +1178,30 @@
             this.levelModifier = levelModifiers[index];
         }
 
-        getDamage(potency$$1)
+        setMainStat(attribute, value)
         {
+            this.attribute = attribute;
+            this.mainValue = value;
+        }
+
+        setStats(weaponDamage$$1, critical, directHit, determination$$1, speed, tenacity = 380)
+        {
+            this._wd = weaponDamage$$1;
+            this._crt = critical;
+            this._dh = directHit;
+            this._det = determination$$1;
+            this._sks = speed;
+            this._tnc = tenacity;
+        }
+
+        attackDamage(potency$$1)
+        {
+            let ap = attackPower(this.mainValue);
+            let wd = weaponDamage(this, this.attribute, this._wd);
             let pot = potency(potency$$1);
-            return pot * 1
+            let det = determination(this.levelModifier, this._det);
+            let d1 = Math.floor(pot * wd * ap * det);
+            return d1;
         }
     }
 

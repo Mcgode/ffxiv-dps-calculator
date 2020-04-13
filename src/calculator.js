@@ -18,7 +18,6 @@ export class Calculator
     setJob(jobName)
     {
         for (let i = 0; i < jobModifiers.length; i++) {
-            console.log(jobModifiers[i]);
             if (jobModifiers[i].Job.toLowerCase() === jobName.toLowerCase()) {
                 this.setJobAtIndex(i);
                 return
@@ -35,7 +34,6 @@ export class Calculator
     setLevel(level)
     {
         for (let i = 0; i < levelModifiers.length; i++) {
-            console.log(levelModifiers[i]);
             if (levelModifiers[i]["Lv."] === level) {
                 this.setLevelAtIndex(i);
                 return
@@ -49,9 +47,29 @@ export class Calculator
         this.levelModifier = levelModifiers[index]
     }
 
-    getDamage(potency)
+    setMainStat(attribute, value)
     {
+        this.attribute = attribute;
+        this.mainValue = value;
+    }
+
+    setStats(weaponDamage, critical, directHit, determination, speed, tenacity = 380)
+    {
+        this._wd = weaponDamage;
+        this._crt = critical;
+        this._dh = directHit;
+        this._det = determination;
+        this._sks = speed;
+        this._tnc = tenacity
+    }
+
+    attackDamage(potency)
+    {
+        let ap = Functions.attackPower(this.mainValue);
+        let wd = Functions.weaponDamage(this, this.attribute, this._wd);
         let pot = Functions.potency(potency);
-        return pot * 1
+        let det = Functions.determination(this.levelModifier, this._det);
+        let d1 = Math.floor(pot * wd * ap * det);
+        return d1;
     }
 }
