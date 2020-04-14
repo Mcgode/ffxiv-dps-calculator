@@ -1175,6 +1175,10 @@
             this._currentTime += time;
         }
 
+        noticeUseOfSkill(skill) {}
+
+        getAutoAttackPotency() { return 100; }
+
         getBuffs() { return [] }
 
         getTypeYSpeedModifier() { return 0 }
@@ -1254,7 +1258,7 @@
             this._traitBoost = boost;
         }
 
-        attackDamage(potency$$1)
+        getAttackDamage(potency$$1)
         {
             let ap = attackPower(this._mainValue);
             let wd = weaponDamage(this, this.attribute, this._wd);
@@ -1301,7 +1305,7 @@
         {
             let ap = attackPower(this._mainValue);
             let aa = autoAttack(this.levelModifier, this.jobModifier, this.attribute, this._wd, delay);
-            let pot = potency(110);
+            let pot = potency(this._status.getAutoAttackPotency());
             let det = determination(this.levelModifier, this._det);
             let tnc = tenacity(this.levelModifier, this._tnc);
             let d1 = Math.floor(pot * aa * ap * det * tnc * this._traitBoost);
