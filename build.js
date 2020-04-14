@@ -30,7 +30,7 @@ async function build(inputOptions, outputOptions) {
  ******************************************/
 
 build({
-    input: 'src/calculator.js',
+    input: 'src/dpsCalculator.js',
     plugins:  [ commonjs(), resolve(), json() ],
     external: [],
 }, {
@@ -50,7 +50,7 @@ console.log("Build at " + new Date());
  ******************************************/
 
 build({
-    input: 'src/calculator.js',
+    input: 'src/dpsCalculator.js',
     plugins:  [
         commonjs(),
         resolve(),
