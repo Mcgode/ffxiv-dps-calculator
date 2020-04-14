@@ -6,7 +6,9 @@
 import jobModifiers from './data/jobModifiers'
 import levelModifiers from './data/levelModifiers'
 import * as Functions from './functions'
-import {ClassStatus} from "./classStatus";
+import {JobStatus} from "./jobStatus";
+import {DragoonStatus} from "./jobs/drg/status";
+
 
 export class Calculator
 {
@@ -17,24 +19,38 @@ export class Calculator
         this.setMainStat('STR', 380);
         this.setStats(100, 380, 380, 380, 380, 380);
         this.setTraitBoost(1.);
-        this._status = new ClassStatus()
+        this._status = new JobStatus()
     }
 
     setJob(jobName)
     {
         for (let i = 0; i < jobModifiers.length; i++) {
             if (jobModifiers[i].Job.toLowerCase() === jobName.toLowerCase()) {
-                this.setJobAtIndex(i);
+                this._setJobAtIndex(i);
+                this._setJobStatus(jobName);
                 return
             }
         }
         throw "No such job: " + jobName
     }
 
-    setJobAtIndex(index)
+    _setJobAtIndex(index)
     {
         this.jobModifier = jobModifiers[index]
     }
+
+
+    _setJobStatus(jobName)
+    {
+        switch (jobName) {
+            case 'DRG':
+                this._status = new DragoonStatus();
+                break;
+            default:
+                this._status = new JobStatus()
+        }
+    }
+
 
     setLevel(level)
     {

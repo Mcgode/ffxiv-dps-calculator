@@ -3,7 +3,7 @@
  * @author Max Godefroy <max@godefroy.net>
  */
 
-export class ClassStatus
+export class JobStatus
 {
     constructor() {
         this._currentTime = 0
