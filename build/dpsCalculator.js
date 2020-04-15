@@ -345,6 +345,10 @@
             this._tnc = tenacity;
         }
 
+        getAutoAttackPotency() {
+            return 0;
+        }
+
         mainAttribute()
         {
             return 'STR'
@@ -416,13 +420,11 @@
             this._currentTime = 0;
         }
 
-        incrementTimeByTime(time) {
+        incrementTimeBy(time) {
             this._currentTime += time;
         }
 
         noticeUseOfSkill(skill) {}
-
-        getAutoAttackPotency() { return 100; }
 
         getBuffs() { return [] }
 
@@ -452,10 +454,14 @@
                 }
             }
         }
-
-
+        
         jobMod() {
             return this._jm;
+        }
+
+        getAutoAttackPotency()
+        {
+            return 110;
         }
     }
 
@@ -470,11 +476,6 @@
         constructor()
         {
             super();
-        }
-
-        getAutoAttackPotency()
-        {
-            return 110;
         }
     }
 
@@ -1415,10 +1416,14 @@
 
         getAutoAttackDamage()
         {
+            let aaPot = this.job.getAutoAttackPotency();
+            if (aaPot === 0)
+                return { min: 0, avg: 0, max: 0 };
+
             let ap = attackPower(this.job.mainStat());
             let aa = autoAttack(this.levelModifier, this.job.jobMod(), this.job.mainAttribute(),
                                           this.job.weaponDamage(), this.job.weaponDelay());
-            let pot = potency(this.job.status().getAutoAttackPotency());
+            let pot = potency(aaPot);
             let det = determination(this.levelModifier, this.job.determination());
             let tnc = tenacity(this.levelModifier, this.job.tenacity());
             let d1 = Math.floor(pot * aa * ap * det * tnc * this.job.traitModifier());

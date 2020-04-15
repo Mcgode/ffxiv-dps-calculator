@@ -83,10 +83,14 @@ export class Calculator
 
     getAutoAttackDamage()
     {
+        let aaPot = this.job.getAutoAttackPotency();
+        if (aaPot === 0)
+            return { min: 0, avg: 0, max: 0 };
+
         let ap = Functions.attackPower(this.job.mainStat());
         let aa = Functions.autoAttack(this.levelModifier, this.job.jobMod(), this.job.mainAttribute(),
                                       this.job.weaponDamage(), this.job.weaponDelay());
-        let pot = Functions.potency(this.job.status().getAutoAttackPotency());
+        let pot = Functions.potency(aaPot);
         let det = Functions.determination(this.levelModifier, this.job.determination());
         let tnc = Functions.tenacity(this.levelModifier, this.job.tenacity());
         let d1 = Math.floor(pot * aa * ap * det * tnc * this.job.traitModifier());

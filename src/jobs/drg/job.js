@@ -22,8 +22,12 @@ export class DragoonJob extends Job
         }
     }
 
-
     jobMod() {
         return this._jm;
+    }
+
+    getAutoAttackPotency()
+    {
+        return 110;
     }
 }

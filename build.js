@@ -36,7 +36,7 @@ build({
 }, {
     format: 'umd',
     name: MODULE_NAME,
-    file: `./run/${MODULE_FILENAME}.js`,
+    file: `./run/js/${MODULE_FILENAME}.js`,
     copyFile: `./build/${MODULE_FILENAME}.js`,
     globals: {}
 });
@@ -67,7 +67,7 @@ build({
 }, {
     format: 'umd',
     name: MODULE_NAME,
-    file: `./run/${MODULE_FILENAME}.min.js`,
+    file: `./run/js/${MODULE_FILENAME}.min.js`,
     copyFile: `./build/${MODULE_FILENAME}.min.js`,
     globals: {}
 });

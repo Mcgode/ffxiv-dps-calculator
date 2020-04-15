@@ -9,13 +9,11 @@ export class JobStatus
         this._currentTime = 0
     }
 
-    incrementTimeByTime(time) {
+    incrementTimeBy(time) {
         this._currentTime += time
     }
 
     noticeUseOfSkill(skill) {}
-
-    getAutoAttackPotency() { return 100; }
 
     getBuffs() { return [] }
 

@@ -12,9 +12,4 @@ export class DragoonStatus extends JobStatus
     {
         super();
     }
-
-    getAutoAttackPotency()
-    {
-        return 110;
-    }
 }

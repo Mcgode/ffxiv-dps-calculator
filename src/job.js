@@ -42,6 +42,10 @@ export class Job
         this._tnc = tenacity;
     }
 
+    getAutoAttackPotency() {
+        return 0;
+    }
+
     mainAttribute()
     {
         return 'STR'

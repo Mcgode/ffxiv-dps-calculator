@@ -2,6 +2,6 @@ node_modules
 
 .idea
 
-run/*.js
+run/js
 
 .DS_Store
