@@ -17,9 +17,13 @@
             document.getElementById("main-stat-label").innerText = jobStat(job);
             calculator.setJob(job);
             calculator.setLevel(80);
-            calculator.setMainStat(jobStat(job), parseInt(document.getElementById("main-stat-input").value));
-            calculator.setStats(
+            calculator.job.setMainStatValue(parseInt(document.getElementById("main-stat-input").value));
+
+            let wdel = parseFloat(document.getElementById("wdel-input").value);
+
+            calculator.job.setStats(
                 parseInt(document.getElementById("wd-input").value),
+                wdel,
                 parseInt(document.getElementById("crt-input").value),
                 parseInt(document.getElementById("dh-input").value),
                 parseInt(document.getElementById("det-input").value),
@@ -29,13 +33,11 @@
 
             console.log(document.getElementById("wd-input").value, document.getElementById("wdel-input").value);
 
-            let wdel = (document.getElementById("wdel-input").value);
-
             console.log(calculator.getAttackDamage(290));
             console.log(calculator.getGCD());
             document.getElementById("results").innerText =
                 "Average DPS: " + Math.round(calculator.getAttackDamage(290).avg / calculator.getGCD() * 100) / 100 + "\n" +
-                "Auto-attack dps: " + Math.round(calculator.getAutoAttackDamage(wdel).avg / wdel * 100) / 100;
+                "Auto-attack dps: " + Math.round(calculator.getAutoAttackDamage().avg / wdel * 100) / 100;
         }
 
         function jobStat(job) {

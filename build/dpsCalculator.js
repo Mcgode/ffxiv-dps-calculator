@@ -304,6 +304,180 @@
     	}
     ];
 
+    /**
+     * @file job.js
+     * @author Max Godefroy <max@godefroy.net>
+     */
+
+
+    class Job$$1
+    {
+        constructor()
+        {
+            this._status = new JobStatus();
+            this.setMainStatValue(380);
+            this.setStats(100, 3,380, 380, 380, 380, 380);
+        }
+
+        static getJob(jobName)
+        {
+            switch (jobName) {
+                case 'DRG':
+                    return new DragoonJob$$1();
+                default:
+                    return new Job$$1()
+            }
+        }
+
+        setMainStatValue(value)
+        {
+            this._mainValue = value;
+        }
+
+        setStats(weaponDamage, weaponDelay, critical, directHit, determination, speed, tenacity = 380)
+        {
+            this._wd = weaponDamage;
+            this._wdel = weaponDelay;
+            this._crt = critical;
+            this._dh = directHit;
+            this._det = determination;
+            this._sks = speed;
+            this._tnc = tenacity;
+        }
+
+        mainAttribute()
+        {
+            return 'STR'
+        }
+
+        jobMod() {
+            return jobModifiers[0]
+        }
+
+        mainStat()
+        {
+            return this._mainValue
+        }
+
+        weaponDamage()
+        {
+            return this._wd
+        }
+
+        weaponDelay()
+        {
+            return this._wdel
+        }
+
+        critical()
+        {
+            return this._crt
+        }
+
+        directHit()
+        {
+            return this._dh
+        }
+
+        determination()
+        {
+            return this._det
+        }
+
+        skillSpeed()
+        {
+            return this._sks
+        }
+
+        tenacity()
+        {
+            return this._tnc
+        }
+
+        traitModifier(level = 80)
+        {
+            return 1
+        }
+
+        status()
+        {
+            return this._status
+        }
+    }
+
+    /**
+     * @file classStatus.js
+     * @author Max Godefroy <max@godefroy.net>
+     */
+
+    class JobStatus
+    {
+        constructor() {
+            this._currentTime = 0;
+        }
+
+        incrementTimeByTime(time) {
+            this._currentTime += time;
+        }
+
+        noticeUseOfSkill(skill) {}
+
+        getAutoAttackPotency() { return 100; }
+
+        getBuffs() { return [] }
+
+        getTypeYSpeedModifier() { return 0 }
+
+        getTypeZSpeedModifier() { return 0 }
+
+        getHasteModifier() { return 0 }
+    }
+
+    /**
+     * @file jobs/drg/job.js
+     * @author Max Godefroy <max@godefroy.net>
+     */
+
+
+    class DragoonJob$$1 extends Job$$1
+    {
+        constructor()
+        {
+            super();
+            this._status = new DragoonStatus$$1();
+            for (let jm of jobModifiers) {
+                if (jm.Job === "DRG") {
+                    this._jm = jm;
+                    break;
+                }
+            }
+        }
+
+
+        jobMod() {
+            return this._jm;
+        }
+    }
+
+    /**
+     * @file jobs/drg/status.js
+     * @author Max Godefroy <max@godefroy.net>
+     */
+
+
+    class DragoonStatus$$1 extends JobStatus
+    {
+        constructor()
+        {
+            super();
+        }
+
+        getAutoAttackPotency()
+        {
+            return 110;
+        }
+    }
+
     var levelModifiers = [
     	{
     		"Lv.": 1,
@@ -1118,9 +1292,9 @@
         return value / 100
     }
 
-    function weaponDamage(calculator, attribute, weaponDamageValue)
+    function weaponDamage(levelModifier, jobModifier, attribute, weaponDamageValue)
     {
-        return Math.floor(calculator.levelModifier.MAIN * calculator.jobModifier[attribute] / 1000 + weaponDamageValue)
+        return Math.floor(levelModifier.MAIN * jobModifier[attribute] / 1000 + weaponDamageValue)
     }
 
     function attackPower(value)
@@ -1161,96 +1335,22 @@
     }
 
     /**
-     * @file classStatus.js
-     * @author Max Godefroy <max@godefroy.net>
-     */
-
-    class JobStatus
-    {
-        constructor() {
-            this._currentTime = 0;
-        }
-
-        incrementTimeByTime(time) {
-            this._currentTime += time;
-        }
-
-        noticeUseOfSkill(skill) {}
-
-        getAutoAttackPotency() { return 100; }
-
-        getBuffs() { return [] }
-
-        getTypeYSpeedModifier() { return 0 }
-
-        getTypeZSpeedModifier() { return 0 }
-
-        getHasteModifier() { return 0 }
-    }
-
-    /**
-     * @file jobs/drg/status.js
-     * @author Max Godefroy <max@godefroy.net>
-     */
-
-
-    class DragoonStatus extends JobStatus
-    {
-        constructor()
-        {
-            super();
-        }
-
-        getAutoAttackPotency()
-        {
-            return 110;
-        }
-    }
-
-    /**
      * @file calculator.js
      * @author Max Godefroy <max@godefroy.net>
      */
 
-    class Calculator
+
+    class Calculator$$1
     {
         constructor()
         {
             this.setJob('PLD');
             this.setLevel(80);
-            this.setMainStat('STR', 380);
-            this.setStats(100, 380, 380, 380, 380, 380);
-            this.setTraitBoost(1.);
-            this._status = new JobStatus();
         }
 
         setJob(jobName)
         {
-            for (let i = 0; i < jobModifiers.length; i++) {
-                if (jobModifiers[i].Job.toLowerCase() === jobName.toLowerCase()) {
-                    this._setJobAtIndex(i);
-                    this._setJobStatus(jobName);
-                    return
-                }
-            }
-            throw "No such job: " + jobName
-        }
-
-        _setJobAtIndex(index)
-        {
-            this.jobModifier = jobModifiers[index];
-        }
-
-
-        _setJobStatus(jobName)
-        {
-            switch (jobName) {
-                case 'DRG':
-                    this._status = new DragoonStatus();
-                    break;
-                default:
-                    this._status = new JobStatus();
-            }
+            this.job = Job$$1.getJob(jobName);
         }
 
 
@@ -1270,60 +1370,39 @@
             this.levelModifier = levelModifiers[index];
         }
 
-        setMainStat(attribute, value)
-        {
-            this.attribute = attribute;
-            this._mainValue = value;
-        }
-
-        setStats(weaponDamage$$1, critical, directHit, determination$$1, speed$$1, tenacity$$1 = 380)
-        {
-            this._wd = weaponDamage$$1;
-            this._crt = critical;
-            this._dh = directHit;
-            this._det = determination$$1;
-            this._sks = speed$$1;
-            this._tnc = tenacity$$1;
-        }
-
-        setTraitBoost(boost)
-        {
-            this._traitBoost = boost;
-        }
-
         getAttackDamage(potency$$1)
         {
-            let ap = attackPower(this._mainValue);
-            let wd = weaponDamage(this, this.attribute, this._wd);
+            let ap = attackPower(this.job.mainStat());
+            let wd = weaponDamage(this.levelModifier, this.job.jobMod(), this.job.mainAttribute(), this.job.weaponDamage());
             let pot = potency(potency$$1);
-            let det = determination(this.levelModifier, this._det);
-            let tnc = tenacity(this.levelModifier, this._tnc);
-            let d1 = Math.floor(pot * wd * ap * det * tnc * this._traitBoost);
+            let det = determination(this.levelModifier, this.job.determination());
+            let tnc = tenacity(this.levelModifier, this.job.tenacity());
+            let d1 = Math.floor(pot * wd * ap * det * tnc * this.job.traitModifier());
 
-            let pdh = directHitProbability(this.levelModifier, this._dh);
-            let pch = criticalHitProbability(this.levelModifier, this._crt);
-            let chr = criticalHitRate(this.levelModifier, this._crt);
+            let pdh = directHitProbability(this.levelModifier, this.job.directHit());
+            let pch = criticalHitProbability(this.levelModifier, this.job.critical());
+            let chr = criticalHitRate(this.levelModifier, this.job.critical());
 
             let avg = Math.floor(d1 * pch * (chr - 1) + d1);
             avg = Math.floor(avg + avg * pdh * 0.25);
 
             let max = Math.floor(Math.floor(d1 * chr) * 1.25);
 
-            return Calculator.applyBuffs({
+            return Calculator$$1.applyBuffs({
                 min: Math.floor(d1 * 0.95),
                 avg: avg,
                 max: Math.floor(1.05 * max)
-            }, this._status.getBuffs());
+            }, this.job.status().getBuffs());
         }
 
         getGCD(delay = 2500)
         {
             let gcdm = Math.floor(
-                (1000 - Math.floor(130 * (this._sks - this.levelModifier.SUB) / this.levelModifier.DIV)) * delay / 1000
+                (1000 - Math.floor(130 * (this.job.skillSpeed() - this.levelModifier.SUB) / this.levelModifier.DIV)) * delay / 1000
             );
 
-            let a = Math.floor((100 - this._status.getTypeYSpeedModifier()) * (100 - this._status.getHasteModifier()) / 100);
-            let b = (100 - this._status.getTypeZSpeedModifier()) / 100;
+            let a = Math.floor((100 - this.job.status().getTypeYSpeedModifier()) * (100 - this.job.status().getHasteModifier()) / 100);
+            let b = (100 - this.job.status().getTypeZSpeedModifier()) / 100;
 
             let gcdc = Math.floor(
                 Math.floor(
@@ -1334,29 +1413,30 @@
             return gcdc / 100
         }
 
-        getAutoAttackDamage(delay)
+        getAutoAttackDamage()
         {
-            let ap = attackPower(this._mainValue);
-            let aa = autoAttack(this.levelModifier, this.jobModifier, this.attribute, this._wd, delay);
-            let pot = potency(this._status.getAutoAttackPotency());
-            let det = determination(this.levelModifier, this._det);
-            let tnc = tenacity(this.levelModifier, this._tnc);
-            let d1 = Math.floor(pot * aa * ap * det * tnc * this._traitBoost);
+            let ap = attackPower(this.job.mainStat());
+            let aa = autoAttack(this.levelModifier, this.job.jobMod(), this.job.mainAttribute(),
+                                          this.job.weaponDamage(), this.job.weaponDelay());
+            let pot = potency(this.job.status().getAutoAttackPotency());
+            let det = determination(this.levelModifier, this.job.determination());
+            let tnc = tenacity(this.levelModifier, this.job.tenacity());
+            let d1 = Math.floor(pot * aa * ap * det * tnc * this.job.traitModifier());
 
-            let pdh = directHitProbability(this.levelModifier, this._dh);
-            let pch = criticalHitProbability(this.levelModifier, this._crt);
-            let chr = criticalHitRate(this.levelModifier, this._crt);
+            let pdh = directHitProbability(this.levelModifier, this.job.directHit());
+            let pch = criticalHitProbability(this.levelModifier, this.job.critical());
+            let chr = criticalHitRate(this.levelModifier, this.job.critical());
 
             let avg = Math.floor(d1 * pch * (chr - 1) + d1);
             avg = Math.floor(avg + avg * pdh * 0.25);
 
             let max = Math.floor(Math.floor(d1 * chr) * 1.25);
 
-            return Calculator.applyBuffs({
+            return Calculator$$1.applyBuffs({
                 min: Math.floor(d1 * 0.95),
                 avg: avg,
                 max: Math.floor(1.05 * max)
-            }, this._status.getBuffs());
+            }, this.job.status().getBuffs());
         }
 
         static applyBuffs(damage, buffs)
@@ -1371,11 +1451,16 @@
     }
 
     /**
+     * @file internal.js
+     * @author Max Godefroy <max@godefroy.net>
+     */
+
+    /**
      * @file dpsCalculator.js
      * @author Max Godefroy <max@godefroy.net>
      */
 
-    exports.Calculator = Calculator;
+    exports.Calculator = Calculator$$1;
 
     Object.defineProperty(exports, '__esModule', { value: true });
 

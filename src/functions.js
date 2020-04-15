@@ -9,9 +9,9 @@ export function potency(value)
     return value / 100
 }
 
-export function weaponDamage(calculator, attribute, weaponDamageValue)
+export function weaponDamage(levelModifier, jobModifier, attribute, weaponDamageValue)
 {
-    return Math.floor(calculator.levelModifier.MAIN * calculator.jobModifier[attribute] / 1000 + weaponDamageValue)
+    return Math.floor(levelModifier.MAIN * jobModifier[attribute] / 1000 + weaponDamageValue)
 }
 
 export function attackPower(value)

@@ -3,11 +3,9 @@
  * @author Max Godefroy <max@godefroy.net>
  */
 
-import jobModifiers from './data/jobModifiers'
+import { Job } from "./internal";
 import levelModifiers from './data/levelModifiers'
 import * as Functions from './functions'
-import {JobStatus} from "./jobStatus";
-import {DragoonStatus} from "./jobs/drg/status";
 
 
 export class Calculator
@@ -16,39 +14,11 @@ export class Calculator
     {
         this.setJob('PLD');
         this.setLevel(80);
-        this.setMainStat('STR', 380);
-        this.setStats(100, 380, 380, 380, 380, 380);
-        this.setTraitBoost(1.);
-        this._status = new JobStatus()
     }
 
     setJob(jobName)
     {
-        for (let i = 0; i < jobModifiers.length; i++) {
-            if (jobModifiers[i].Job.toLowerCase() === jobName.toLowerCase()) {
-                this._setJobAtIndex(i);
-                this._setJobStatus(jobName);
-                return
-            }
-        }
-        throw "No such job: " + jobName
-    }
-
-    _setJobAtIndex(index)
-    {
-        this.jobModifier = jobModifiers[index]
-    }
-
-
-    _setJobStatus(jobName)
-    {
-        switch (jobName) {
-            case 'DRG':
-                this._status = new DragoonStatus();
-                break;
-            default:
-                this._status = new JobStatus()
-        }
+        this.job = Job.getJob(jobName)
     }
 
 
@@ -68,39 +38,18 @@ export class Calculator
         this.levelModifier = levelModifiers[index]
     }
 
-    setMainStat(attribute, value)
-    {
-        this.attribute = attribute;
-        this._mainValue = value;
-    }
-
-    setStats(weaponDamage, critical, directHit, determination, speed, tenacity = 380)
-    {
-        this._wd = weaponDamage;
-        this._crt = critical;
-        this._dh = directHit;
-        this._det = determination;
-        this._sks = speed;
-        this._tnc = tenacity;
-    }
-
-    setTraitBoost(boost)
-    {
-        this._traitBoost = boost
-    }
-
     getAttackDamage(potency)
     {
-        let ap = Functions.attackPower(this._mainValue);
-        let wd = Functions.weaponDamage(this, this.attribute, this._wd);
+        let ap = Functions.attackPower(this.job.mainStat());
+        let wd = Functions.weaponDamage(this.levelModifier, this.job.jobMod(), this.job.mainAttribute(), this.job.weaponDamage());
         let pot = Functions.potency(potency);
-        let det = Functions.determination(this.levelModifier, this._det);
-        let tnc = Functions.tenacity(this.levelModifier, this._tnc);
-        let d1 = Math.floor(pot * wd * ap * det * tnc * this._traitBoost);
+        let det = Functions.determination(this.levelModifier, this.job.determination());
+        let tnc = Functions.tenacity(this.levelModifier, this.job.tenacity());
+        let d1 = Math.floor(pot * wd * ap * det * tnc * this.job.traitModifier());
 
-        let pdh = Functions.directHitProbability(this.levelModifier, this._dh);
-        let pch = Functions.criticalHitProbability(this.levelModifier, this._crt);
-        let chr = Functions.criticalHitRate(this.levelModifier, this._crt);
+        let pdh = Functions.directHitProbability(this.levelModifier, this.job.directHit());
+        let pch = Functions.criticalHitProbability(this.levelModifier, this.job.critical());
+        let chr = Functions.criticalHitRate(this.levelModifier, this.job.critical());
 
         let avg = Math.floor(d1 * pch * (chr - 1) + d1);
         avg = Math.floor(avg + avg * pdh * 0.25);
@@ -111,17 +60,17 @@ export class Calculator
             min: Math.floor(d1 * 0.95),
             avg: avg,
             max: Math.floor(1.05 * max)
-        }, this._status.getBuffs());
+        }, this.job.status().getBuffs());
     }
 
     getGCD(delay = 2500)
     {
         let gcdm = Math.floor(
-            (1000 - Math.floor(130 * (this._sks - this.levelModifier.SUB) / this.levelModifier.DIV)) * delay / 1000
+            (1000 - Math.floor(130 * (this.job.skillSpeed() - this.levelModifier.SUB) / this.levelModifier.DIV)) * delay / 1000
         );
 
-        let a = Math.floor((100 - this._status.getTypeYSpeedModifier()) * (100 - this._status.getHasteModifier()) / 100);
-        let b = (100 - this._status.getTypeZSpeedModifier()) / 100;
+        let a = Math.floor((100 - this.job.status().getTypeYSpeedModifier()) * (100 - this.job.status().getHasteModifier()) / 100);
+        let b = (100 - this.job.status().getTypeZSpeedModifier()) / 100;
 
         let gcdc = Math.floor(
             Math.floor(
@@ -132,18 +81,19 @@ export class Calculator
         return gcdc / 100
     }
 
-    getAutoAttackDamage(delay)
+    getAutoAttackDamage()
     {
-        let ap = Functions.attackPower(this._mainValue);
-        let aa = Functions.autoAttack(this.levelModifier, this.jobModifier, this.attribute, this._wd, delay);
-        let pot = Functions.potency(this._status.getAutoAttackPotency());
-        let det = Functions.determination(this.levelModifier, this._det);
-        let tnc = Functions.tenacity(this.levelModifier, this._tnc);
-        let d1 = Math.floor(pot * aa * ap * det * tnc * this._traitBoost);
+        let ap = Functions.attackPower(this.job.mainStat());
+        let aa = Functions.autoAttack(this.levelModifier, this.job.jobMod(), this.job.mainAttribute(),
+                                      this.job.weaponDamage(), this.job.weaponDelay());
+        let pot = Functions.potency(this.job.status().getAutoAttackPotency());
+        let det = Functions.determination(this.levelModifier, this.job.determination());
+        let tnc = Functions.tenacity(this.levelModifier, this.job.tenacity());
+        let d1 = Math.floor(pot * aa * ap * det * tnc * this.job.traitModifier());
 
-        let pdh = Functions.directHitProbability(this.levelModifier, this._dh);
-        let pch = Functions.criticalHitProbability(this.levelModifier, this._crt);
-        let chr = Functions.criticalHitRate(this.levelModifier, this._crt);
+        let pdh = Functions.directHitProbability(this.levelModifier, this.job.directHit());
+        let pch = Functions.criticalHitProbability(this.levelModifier, this.job.critical());
+        let chr = Functions.criticalHitRate(this.levelModifier, this.job.critical());
 
         let avg = Math.floor(d1 * pch * (chr - 1) + d1);
         avg = Math.floor(avg + avg * pdh * 0.25);
@@ -154,7 +104,7 @@ export class Calculator
             min: Math.floor(d1 * 0.95),
             avg: avg,
             max: Math.floor(1.05 * max)
-        }, this._status.getBuffs());
+        }, this.job.status().getBuffs());
     }
 
     static applyBuffs(damage, buffs)
