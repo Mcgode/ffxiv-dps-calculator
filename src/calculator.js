@@ -40,27 +40,7 @@ export class Calculator
 
     getAttackDamage(potency)
     {
-        let ap = Functions.attackPower(this.job.mainStat());
-        let wd = Functions.weaponDamage(this.levelModifier, this.job.jobMod(), this.job.mainAttribute(), this.job.weaponDamage());
-        let pot = Functions.potency(potency);
-        let det = Functions.determination(this.levelModifier, this.job.determination());
-        let tnc = Functions.tenacity(this.levelModifier, this.job.tenacity());
-        let d1 = Math.floor(pot * wd * ap * det * tnc * this.job.traitModifier());
-
-        let pdh = Functions.directHitProbability(this.levelModifier, this.job.directHit());
-        let pch = Functions.criticalHitProbability(this.levelModifier, this.job.critical());
-        let chr = Functions.criticalHitRate(this.levelModifier, this.job.critical());
-
-        let avg = Math.floor(d1 * pch * (chr - 1) + d1);
-        avg = Math.floor(avg + avg * pdh * 0.25);
-
-        let max = Math.floor(Math.floor(d1 * chr) * 1.25);
-
-        return Calculator.applyBuffs({
-            min: Math.floor(d1 * 0.95),
-            avg: avg,
-            max: Math.floor(1.05 * max)
-        }, this.job.status().getBuffs());
+        return this._getDamage(Functions.potency(potency))
     }
 
     getGCD(delay = 2500)
@@ -87,16 +67,25 @@ export class Calculator
         if (aaPot === 0)
             return { min: 0, avg: 0, max: 0 };
 
+        let pot = Functions.potency(aaPot);
+
+        return this._getDamage(pot)
+    }
+
+
+    _getDamage(pot)
+    {
         let ap = Functions.attackPower(this.job.mainStat());
         let aa = Functions.autoAttack(this.levelModifier, this.job.jobMod(), this.job.mainAttribute(),
-                                      this.job.weaponDamage(), this.job.weaponDelay());
-        let pot = Functions.potency(aaPot);
+            this.job.weaponDamage(), this.job.weaponDelay());
         let det = Functions.determination(this.levelModifier, this.job.determination());
         let tnc = Functions.tenacity(this.levelModifier, this.job.tenacity());
         let d1 = Math.floor(pot * aa * ap * det * tnc * this.job.traitModifier());
 
         let pdh = Functions.directHitProbability(this.levelModifier, this.job.directHit());
+        pdh = this.job.status().applyDirectHitProbabilityBuff(pdh);
         let pch = Functions.criticalHitProbability(this.levelModifier, this.job.critical());
+        pch = this.job.status().applyCriticalHitProbabilityBuff(pch);
         let chr = Functions.criticalHitRate(this.levelModifier, this.job.critical());
 
         let avg = Math.floor(d1 * pch * (chr - 1) + d1);
@@ -108,7 +97,7 @@ export class Calculator
             min: Math.floor(d1 * 0.95),
             avg: avg,
             max: Math.floor(1.05 * max)
-        }, this.job.status().getBuffs());
+        }, this.job.status().getDirectDamageBuffs());
     }
 
     static applyBuffs(damage, buffs)

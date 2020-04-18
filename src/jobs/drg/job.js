@@ -15,7 +15,7 @@ export class DragoonJob extends Job
         super();
         this._status = new DragoonStatus();
         for (let jm of jobModifiers) {
-            if (jm.Job === "DRG") {
+            if (jm['Job'] === "DRG") {
                 this._jm = jm;
                 break;
             }

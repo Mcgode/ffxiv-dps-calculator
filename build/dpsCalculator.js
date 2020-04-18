@@ -410,6 +410,31 @@
     }
 
     /**
+     * @file buff.js
+     * @author Max Godefroy <max@godefroy.net>
+     */
+
+    class Buff
+    {
+        constructor(buffType, value, duration = 10, start = 0) {
+            this.type = buffType;
+            this.value = value;
+            this.duration = duration;
+            this.start = start;
+        }
+
+        static buffType() {
+            return {
+                DAMAGE_UP: "damage_up",
+                DAMAGE_DOWN: "damage_down",
+                DIRECT_HIT_PROBABILITY_UP: "direct_hit_prob_up",
+                CRITICAL_HIT_PROBABILITY_UP: "critical_hit_prob_up",
+                DIRECT_AND_CRITICAL_HIT_PROBABILITY_UP: "direct_and_critical_hit_prob_up",
+            }
+        }
+    }
+
+    /**
      * @file classStatus.js
      * @author Max Godefroy <max@godefroy.net>
      */
@@ -418,6 +443,7 @@
     {
         constructor() {
             this._currentTime = 0;
+            this._currentBuffs = [];
         }
 
         incrementTimeBy(time) {
@@ -426,7 +452,53 @@
 
         noticeUseOfSkill(skill) {}
 
-        getBuffs() { return [] }
+        getDirectDamageBuffs()
+        {
+            let buffsToApply = [];
+
+            for (let buff of this._currentBuffs)
+            {
+                switch (buff.type) {
+                    case Buff.buffType().DAMAGE_UP:
+                    case Buff.buffType().DAMAGE_DOWN:
+                        if (buff.start <= this._currentTime && buff.start + buff.duration >= this._currentTime) {
+                            buffsToApply.push(buff.value);
+                        }
+                }
+            }
+
+            return buffsToApply
+        }
+
+        applyDirectHitProbabilityBuff(directHitProbability)
+        {
+            for (let buff of this._currentBuffs)
+            {
+                switch (buff.type) {
+                    case Buff.buffType().DIRECT_HIT_PROBABILITY_UP:
+                    case Buff.buffType().DIRECT_AND_CRITICAL_HIT_PROBABILITY_UP:
+                        if (buff.start <= this._currentTime && buff.start + buff.duration >= this._currentTime) {
+                            directHitProbability += buff.value;
+                        }
+                }
+            }
+            return Math.min(directHitProbability, 1.0)
+        }
+
+        applyCriticalHitProbabilityBuff(criticalHitProbability)
+        {
+            for (let buff of this._currentBuffs)
+            {
+                switch (buff.type) {
+                    case Buff.buffType().CRITICAL_HIT_PROBABILITY_UP:
+                    case Buff.buffType().DIRECT_AND_CRITICAL_HIT_PROBABILITY_UP:
+                        if (buff.start <= this._currentTime && buff.start + buff.duration >= this._currentTime) {
+                            criticalHitProbability += buff.value;
+                        }
+                }
+            }
+            return Math.min(criticalHitProbability, 1.0)
+        }
 
         getTypeYSpeedModifier() { return 0 }
 
@@ -448,13 +520,13 @@
             super();
             this._status = new DragoonStatus$$1();
             for (let jm of jobModifiers) {
-                if (jm.Job === "DRG") {
+                if (jm['Job'] === "DRG") {
                     this._jm = jm;
                     break;
                 }
             }
         }
-        
+
         jobMod() {
             return this._jm;
         }
@@ -1293,11 +1365,6 @@
         return value / 100
     }
 
-    function weaponDamage(levelModifier, jobModifier, attribute, weaponDamageValue)
-    {
-        return Math.floor(levelModifier.MAIN * jobModifier[attribute] / 1000 + weaponDamageValue)
-    }
-
     function attackPower(value)
     {
         return Math.floor(125 * (value - 292) / 292 + 100) / 100
@@ -1373,27 +1440,7 @@
 
         getAttackDamage(potency$$1)
         {
-            let ap = attackPower(this.job.mainStat());
-            let wd = weaponDamage(this.levelModifier, this.job.jobMod(), this.job.mainAttribute(), this.job.weaponDamage());
-            let pot = potency(potency$$1);
-            let det = determination(this.levelModifier, this.job.determination());
-            let tnc = tenacity(this.levelModifier, this.job.tenacity());
-            let d1 = Math.floor(pot * wd * ap * det * tnc * this.job.traitModifier());
-
-            let pdh = directHitProbability(this.levelModifier, this.job.directHit());
-            let pch = criticalHitProbability(this.levelModifier, this.job.critical());
-            let chr = criticalHitRate(this.levelModifier, this.job.critical());
-
-            let avg = Math.floor(d1 * pch * (chr - 1) + d1);
-            avg = Math.floor(avg + avg * pdh * 0.25);
-
-            let max = Math.floor(Math.floor(d1 * chr) * 1.25);
-
-            return Calculator$$1.applyBuffs({
-                min: Math.floor(d1 * 0.95),
-                avg: avg,
-                max: Math.floor(1.05 * max)
-            }, this.job.status().getBuffs());
+            return this._getDamage(potency(potency$$1))
         }
 
         getGCD(delay = 2500)
@@ -1420,16 +1467,25 @@
             if (aaPot === 0)
                 return { min: 0, avg: 0, max: 0 };
 
+            let pot = potency(aaPot);
+
+            return this._getDamage(pot)
+        }
+
+
+        _getDamage(pot)
+        {
             let ap = attackPower(this.job.mainStat());
             let aa = autoAttack(this.levelModifier, this.job.jobMod(), this.job.mainAttribute(),
-                                          this.job.weaponDamage(), this.job.weaponDelay());
-            let pot = potency(aaPot);
+                this.job.weaponDamage(), this.job.weaponDelay());
             let det = determination(this.levelModifier, this.job.determination());
             let tnc = tenacity(this.levelModifier, this.job.tenacity());
             let d1 = Math.floor(pot * aa * ap * det * tnc * this.job.traitModifier());
 
             let pdh = directHitProbability(this.levelModifier, this.job.directHit());
+            pdh = this.job.status().applyDirectHitProbabilityBuff(pdh);
             let pch = criticalHitProbability(this.levelModifier, this.job.critical());
+            pch = this.job.status().applyCriticalHitProbabilityBuff(pch);
             let chr = criticalHitRate(this.levelModifier, this.job.critical());
 
             let avg = Math.floor(d1 * pch * (chr - 1) + d1);
@@ -1441,7 +1497,7 @@
                 min: Math.floor(d1 * 0.95),
                 avg: avg,
                 max: Math.floor(1.05 * max)
-            }, this.job.status().getBuffs());
+            }, this.job.status().getDirectDamageBuffs());
         }
 
         static applyBuffs(damage, buffs)
@@ -1466,6 +1522,7 @@
      */
 
     exports.Calculator = Calculator$$1;
+    exports.Buff = Buff;
 
     Object.defineProperty(exports, '__esModule', { value: true });
 

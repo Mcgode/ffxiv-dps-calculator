@@ -4,3 +4,5 @@
  */
 
 export { Calculator } from './internal'
+
+export { Buff } from './buff'
