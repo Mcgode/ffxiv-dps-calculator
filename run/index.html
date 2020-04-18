@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>M_cgode's DPS calculator</title>
+</head>
+
+<body>
+    <script src="js/dpsCalculator.js"></script>
+
+    <script>
+        let calculator = new DPSCalculator.Calculator(null, null);
+
+        function updateData() {
+            let job = document.getElementById("class-select").value;
+            document.getElementById("main-stat-label").innerText = jobStat(job);
+            calculator.setJob(job);
+            calculator.setLevel(80);
+            calculator.job.setMainStatValue(parseInt(document.getElementById("main-stat-input").value));
+
+            let wdel = parseFloat(document.getElementById("wdel-input").value);
+
+            calculator.job.setStats(
+                parseInt(document.getElementById("wd-input").value),
+                wdel,
+                parseInt(document.getElementById("crt-input").value),
+                parseInt(document.getElementById("dh-input").value),
+                parseInt(document.getElementById("det-input").value),
+                parseInt(document.getElementById("sks-input").value),
+                parseInt(document.getElementById("tnc-input").value)
+            );
+
+            console.log(document.getElementById("wd-input").value, document.getElementById("wdel-input").value);
+
+            calculator.job.status()._currentBuffs.push(new DPSCalculator.Buff(DPSCalculator.Buff.buffType().DAMAGE_UP, 1.1));
+
+            console.log(calculator.getAttackDamage(290));
+            console.log(calculator.getGCD());
+            document.getElementById("results").innerText =
+                "Average DPS: " + Math.round(calculator.getAttackDamage(290).avg / calculator.getGCD() * 100) / 100 + "\n" +
+                "Auto-attack dps: " + Math.round(calculator.getAutoAttackDamage().avg / wdel * 100) / 100;
+        }
+
+        function jobStat(job) {
+            switch (job) {
+                case 'NIN':
+                case 'BRD':
+                case 'MCH':
+                case 'DNC':
+                    return 'DEX';
+                case 'BLM':
+                case 'INV':
+                case 'RDM':
+                    return 'INT';
+                case 'WHM':
+                case 'SCH':
+                case 'ASR':
+                    return 'MND';
+                default:
+                    return 'STR';
+            }
+        }
+    </script>
+
+    <label for="class-select">Job</label>
+    <select id="class-select" onchange="console.log(value); updateData()">
+        <option value="PLD">PLD</option>
+        <option value="WAR">WAR</option>
+        <option value="DRK">DRK</option>
+        <option value="GNB">GNB</option>
+        <option value="MNK">MNK</option>
+        <option value="DRG" selected>DRG</option>
+        <option value="NIN">NIN</option>
+        <option value="SAM">SAM</option>
+        <option value="WHM">WHM</option>
+        <option value="SCH">SCH</option>
+        <option value="AST">AST</option>
+        <option value="BRD">BRD</option>
+        <option value="MCH">MCH</option>
+        <option value="DNC">DNC</option>
+        <option value="BLM">BLM</option>
+        <option value="INV">INV</option>
+        <option value="RDM">RDM</option>
+    </select>
+
+    <label for="main-stat-input" id="main-stat-label">STR</label>
+    <input type="number" id="main-stat-input" onchange="updateData()" value=4876 />
+
+    <br>
+
+    <label for="wd-input">Weapon damage</label>
+    <input type="number" id="wd-input" onchange="updateData()" value=124 />
+
+    <label for="wdel-input">Weapon delay</label>
+    <input type="number" id="wdel-input" onchange="updateData()" value=2.80 />
+
+    <br>
+
+    <label for="crt-input">CRT</label>
+    <input type="number" id="crt-input" onchange="updateData()" value=3185 />
+
+    <label for="dh-input">DH</label>
+    <input type="number" id="dh-input" onchange="updateData()" value=2285 />
+
+    <label for="det-input">DET</label>
+    <input type="number" id="det-input" onchange="updateData()" value=2186 />
+
+    <label for="sks-input">SKS/SS</label>
+    <input type="number" id="sks-input" onchange="updateData()" value=724 />
+
+    <label for="tnc-input">TNC</label>
+    <input type="number" id="tnc-input" onchange="updateData()" value=380 />
+
+    <p id="results">
+
+    </p>
+
+    <script>
+        updateData();
+    </script>
+</body>
+
+</html>
